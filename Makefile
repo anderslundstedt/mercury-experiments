@@ -5,7 +5,7 @@ SHELL := bash
 MAKEFLAGS += --warn-undefined-variables
 MAKEFLAGS += --no-builtin-rules
 
-.PHONY: default clean
+.PHONY: default clean test
 
 default:
 	@echo 'no default target'
@@ -13,3 +13,11 @@ default:
 clean:
 	# remove anything in .gitignore, including directories
 	git clean -fdX
+	cd parsing-operators
+	make clean
+	cd -
+
+test:
+	cd parsing-operators
+	make test
+	cd -
