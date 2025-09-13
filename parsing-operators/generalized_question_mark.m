@@ -29,7 +29,7 @@
 %     r'(MAYBE_T) --> ?(MAYBE_T,r)
 %   tries r(T) and:
 %   - if r(T) succeeds, then MAYBE_T = maybe.yes(T);
-%   - if r(T) fails,    then MAYBE_T = maybe.no(T).
+%   - if r(T) fails,    then MAYBE_T = maybe.no.
 %
 % - Suppose we have a DCG rule
 %     r(T1::in, T::out, TKNS::in, TKNS::out).
@@ -37,7 +37,7 @@
 %     r'(MAYBE_T) --> ?(MAYBE_T,r,t1)
 %   tries r(t1,T) and:
 %   - if r(t1,T) succeeds, then MAYBE_T = maybe.yes(T);
-%   - if r(t1,T) fails,    then MAYBE_T = maybe.no(T).
+%   - if r(t1,T) fails,    then MAYBE_T = maybe.no.
 %
 % - Suppose we have a DCG rule
 %     r(T1::in, T2::in, T::out, TKNS::in, TKNS::out).
@@ -45,7 +45,7 @@
 %     r'(MAYBE_T) --> ?(MAYBE_T,r,t1,t2)
 %   tries r(t1,t2,T) and:
 %   - if r(t1,t2,T) succeeds, then MAYBE_T = maybe.yes(T);
-%   - if r(t1,t2,T) fails,    then MAYBE_T = maybe.no(T).
+%   - if r(t1,t2,T) fails,    then MAYBE_T = maybe.no.
 %
 % - Suppose we have a DCG rule
 %     r(T1::in, T2::in, T3::in, T::out, TKNS::in, TKNS::out).
@@ -53,7 +53,7 @@
 %     r'(MAYBE_T) --> ?(MAYBE_T,r,t1,t2,t3)
 %   tries r(t1,t2,t3,T) and:
 %   - if r(t1,t2,t3,T) succeeds, then MAYBE_T = maybe.yes(T);
-%   - if r(t1,t2,t3,T) fails,    then MAYBE_T = maybe.no(T).
+%   - if r(t1,t2,t3,T) fails,    then MAYBE_T = maybe.no.
 %
 % - For rules with more than 3 inputs one may resort to currying (or one may
 %   extend the predicate list below). Given a DCG rule
@@ -62,7 +62,7 @@
 %     r'(MAYBE_T) --> {R = r(t1,t2,t3,t4}, ?(MAYBE_T,R)
 %   tries r(t1,t2,t3,t4,T) and:
 %   - if r(t1,t2,t3,t4,T) succeeds, then MAYBE_T = maybe.yes(T);
-%   - if r(t1,t2,t3,t4,T) fails,    then MAYBE_T = maybe.no(T).
+%   - if r(t1,t2,t3,t4,T) fails,    then MAYBE_T = maybe.no.
 
 :- pred ?(
   ta_maybe(T), pred(T1,T2,T3, T,   TKNS, TKNS),           T1,T2,T3, TKNS, TKNS
