@@ -69,35 +69,35 @@
 ).
 :- mode ?(
   out,         pred(in,in,in, out, in,   out) is semidet, in,in,in, in,   out
-) is semidet.
+) is det.
 
 :- pred ?(
   ta_maybe(T), pred(T1,T2,    T,   TKNS, TKNS),           T1,T2,    TKNS, TKNS
 ).
 :- mode ?(
   out,         pred(in,in,    out, in,   out) is semidet, in,in,    in,   out
-) is semidet.
+) is det.
 
 :- pred ?(
   ta_maybe(T), pred(T1,       T,   TKNS, TKNS),           T1,       TKNS, TKNS
 ).
 :- mode ?(
   out,         pred(in,       out, in,   out) is semidet, in,       in,   out
-) is semidet.
+) is det.
 
 :- pred ?(
   ta_maybe(T), pred(          T,   TKNS, TKNS),                     TKNS, TKNS
 ).
 :- mode ?(
   out,         pred(          out, in,   out) is semidet,           in,   out
-) is semidet.
+) is det.
 
 :- pred ?(
                pred(               TKNS, TKNS),                     TKNS, TKNS
 ).
 :- mode ?(
                pred(               in,   out) is semidet,           in,   out
-) is semidet.
+) is det.
 
 
 %% MAIN
@@ -212,12 +212,12 @@ p_test_1 :-
 p_test_2 :-
   ?(r_a, str2chrs("bc"), str2chrs("bc")).
 
-:- pred r_test_3(ta_chrs::in, ta_chrs::out) is semidet.
+:- pred r_test_3(ta_chrs::in, ta_chrs::out) is det.
 r_test_3 --> ?(r_a).
 :- pred p_test_3 is semidet.
 p_test_3 :- r_test_3(str2chrs("abc"),str2chrs("bc")).
 
-:- pred r_test_4(ta_chrs::in, ta_chrs::out) is semidet.
+:- pred r_test_4(ta_chrs::in, ta_chrs::out) is det.
 r_test_4 --> ?(r_a).
 :- pred p_test_4 is semidet.
 p_test_4 :- r_test_4(str2chrs("bc"),str2chrs("bc")).
@@ -230,12 +230,12 @@ p_test_5 :-
 p_test_6 :-
   ?(maybe.no, r_chr_except_for, 'a', str2chrs("abc"), str2chrs("abc")).
 
-:- pred r_test_7(ta_maybe(ta_chr)::out, ta_chrs::in, ta_chrs::out) is semidet.
+:- pred r_test_7(ta_maybe(ta_chr)::out, ta_chrs::in, ta_chrs::out) is det.
 r_test_7(C) --> ?(C,r_chr_except_for,'b').
 :- pred p_test_7 is semidet.
 p_test_7 :- r_test_7(maybe.yes('a'),str2chrs("abc"),str2chrs("bc")).
 
-:- pred r_test_8(ta_maybe(ta_chr)::out, ta_chrs::in, ta_chrs::out) is semidet.
+:- pred r_test_8(ta_maybe(ta_chr)::out, ta_chrs::in, ta_chrs::out) is det.
 r_test_8(C) --> ?(C,r_chr_except_for,'a').
 :- pred p_test_8 is semidet.
 p_test_8 :- r_test_8(maybe.no,str2chrs("abc"),str2chrs("abc")).
@@ -248,12 +248,12 @@ p_test_9 :-
 p_test_10 :-
   ?(maybe.no, r_chr_except_for, 'b', 'a', str2chrs("abc"), str2chrs("abc")).
 
-:- pred r_test_11(ta_maybe(ta_chr)::out, ta_chrs::in, ta_chrs::out) is semidet.
+:- pred r_test_11(ta_maybe(ta_chr)::out, ta_chrs::in, ta_chrs::out) is det.
 r_test_11(C) --> ?(C,r_chr_except_for,'b','c').
 :- pred p_test_11 is semidet.
 p_test_11 :- r_test_11(maybe.yes('a'),str2chrs("abc"),str2chrs("bc")).
 
-:- pred r_test_12(ta_maybe(ta_chr)::out, ta_chrs::in, ta_chrs::out) is semidet.
+:- pred r_test_12(ta_maybe(ta_chr)::out, ta_chrs::in, ta_chrs::out) is det.
 r_test_12(C) --> ?(C,r_chr_except_for,'b','a').
 :- pred p_test_12 is semidet.
 p_test_12 :- r_test_12(maybe.no,str2chrs("abc"),str2chrs("abc")).
@@ -266,22 +266,22 @@ p_test_13 :-
 p_test_14 :-
   ?(maybe.no, r_chr_except_for, 'b', 'a', 'd', str2chrs("ab"), str2chrs("ab")).
 
-:- pred r_test_15(ta_maybe(ta_chr)::out, ta_chrs::in, ta_chrs::out) is semidet.
+:- pred r_test_15(ta_maybe(ta_chr)::out, ta_chrs::in, ta_chrs::out) is det.
 r_test_15(C) --> ?(C,r_chr_except_for,'b','c','d').
 :- pred p_test_15 is semidet.
 p_test_15 :- r_test_15(maybe.yes('a'),str2chrs("abc"),str2chrs("bc")).
 
-:- pred r_test_16(ta_maybe(ta_chr)::out, ta_chrs::in, ta_chrs::out) is semidet.
+:- pred r_test_16(ta_maybe(ta_chr)::out, ta_chrs::in, ta_chrs::out) is det.
 r_test_16(C) --> ?(C,r_chr_except_for,'b','a','d').
 :- pred p_test_16 is semidet.
 p_test_16 :- r_test_16(maybe.no,str2chrs("abc"),str2chrs("abc")).
 
-:- pred r_test_17(ta_maybe(ta_chr)::out, ta_chrs::in, ta_chrs::out) is semidet.
+:- pred r_test_17(ta_maybe(ta_chr)::out, ta_chrs::in, ta_chrs::out) is det.
 r_test_17(C) --> {R = r_chr_except_for('b','c','d','e')}, ?(C,R).
 :- pred p_test_17 is semidet.
 p_test_17 :- r_test_15(maybe.yes('a'),str2chrs("abc"),str2chrs("bc")).
 
-:- pred r_test_18(ta_maybe(ta_chr)::out, ta_chrs::in, ta_chrs::out) is semidet.
+:- pred r_test_18(ta_maybe(ta_chr)::out, ta_chrs::in, ta_chrs::out) is det.
 r_test_18(C) --> {R = r_chr_except_for('b','c','d','a')}, ?(C,R).
 :- pred p_test_18 is semidet.
 p_test_18 :- r_test_18(maybe.no,str2chrs("abc"),str2chrs("abc")).
