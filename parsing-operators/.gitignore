@@ -2,3 +2,4 @@
 *.err
 Mercury
 generalized_question_mark
+generalized_kleene_plus
