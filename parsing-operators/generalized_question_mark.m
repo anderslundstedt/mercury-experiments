@@ -279,7 +279,7 @@ p_test_16 :- r_test_16(maybe.no,str2chrs("abc"),str2chrs("abc")).
 :- pred r_test_17(ta_maybe(ta_chr)::out, ta_chrs::in, ta_chrs::out) is det.
 r_test_17(C) --> {R = r_chr_except_for('b','c','d','e')}, ?(C,R).
 :- pred p_test_17 is semidet.
-p_test_17 :- r_test_15(maybe.yes('a'),str2chrs("abc"),str2chrs("bc")).
+p_test_17 :- r_test_17(maybe.yes('a'),str2chrs("abc"),str2chrs("bc")).
 
 :- pred r_test_18(ta_maybe(ta_chr)::out, ta_chrs::in, ta_chrs::out) is det.
 r_test_18(C) --> {R = r_chr_except_for('b','c','d','a')}, ?(C,R).
