@@ -17,9 +17,13 @@ clean:
 generalized_kleene_plus:
 	mmc --make --warn-dead-preds --warn-dead-procs --inform-ite-instead-of-switch generalized_kleene_plus
 
+generalized_kleene_star:
+	mmc --make --warn-dead-preds --warn-dead-procs --inform-ite-instead-of-switch generalized_kleene_star
+
 generalized_question_mark:
 	mmc --make --warn-dead-preds --warn-dead-procs --inform-ite-instead-of-switch generalized_question_mark
 
-test: generalized_kleene_plus generalized_question_mark
+test: generalized_kleene_plus generalized_kleene_star generalized_question_mark
 	./generalized_kleene_plus
+	./generalized_kleene_star
 	./generalized_question_mark
