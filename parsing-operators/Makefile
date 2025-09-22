@@ -5,7 +5,7 @@ SHELL := bash
 MAKEFLAGS += --warn-undefined-variables
 MAKEFLAGS += --no-builtin-rules
 
-.PHONY: default clean generalized_kleene_plus generalized_question_mark test
+.PHONY: default clean generalized_kleene_plus generalized_kleene_star generalized_question_mark test
 
 default:
 	@echo 'no default target'
