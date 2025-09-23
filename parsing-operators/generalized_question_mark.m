@@ -7,6 +7,8 @@
 
 %% MODULE IMPORTS
 
+:- import_module list.
+
 :- use_module io, maybe.
 
 
@@ -17,86 +19,172 @@
 
 %% GENERALIZED DCG ? OPERATOR
 
-% - Suppose we have a DCG rule
-%     r(TKNS::in, TKNS::out).
-%   Then
-%     r' --> ?(r)
+% - Suppose we have DCG rules
+%     r₁(TKNS::in,TKNS::out), ..., rₙ(TKNS::in,TKNS::out)
+%   Then the rule
+%     r' --> ?([r₁,…,rₙ])
 %   has the expected behaviour.
 %
 % - Suppose we have a DCG rule
-%     r(T::out, TKNS::in, TKNS::out).
-%   Then
-%     r'(MAYBE_T) --> ?(MAYBE_T,r)
-%   tries r(T) and:
-%   - if r(T) succeeds, then MAYBE_T = maybe.yes(T);
-%   - if r(T) fails,    then MAYBE_T = maybe.no.
+%     r(T::out,TKNS::in,TKNS::out)
+%   and DCG rules
+%     r₁(TKNS::in,TKNS::out), ..., rₙ(TKNS::in,TKNS::out)
+%   and
+%     rₙ₊₁(TKNS::in,TKNS::out), ..., rₙ₊ₘ(TKNS::in,TKNS::out).
+%   Then the rule
+%     r'(MAYBE_T) --> ?([r₁,…,rₙ],r,MAYBE_T,[rₙ₊₁,…,rₙ₊ₘ])
+%   (always succeeds and) tries
+%     r₁,…,rₙ, r(T), rₙ₊₁,…,rₙ₊ₘ.
+%   If this succeeds then
+%     MAYBE_T = maybe.yes(T);
+%   otherwise
+%     MAYBE_T = maybe.no.
 %
 % - Suppose we have a DCG rule
-%     r(T1::in, T::out, TKNS::in, TKNS::out).
-%   Then
-%     r'(MAYBE_T) --> ?(MAYBE_T,r,t1)
-%   tries r(t1,T) and:
-%   - if r(t1,T) succeeds, then MAYBE_T = maybe.yes(T);
-%   - if r(t1,T) fails,    then MAYBE_T = maybe.no.
+%     r(T1::in,T::out,TKNS::in,TKNS::out)
+%   and DCG rules
+%     r₁(TKNS::in,TKNS::out), ..., rₙ(TKNS::in,TKNS::out)
+%   and
+%     rₙ₊₁(TKNS::in,TKNS::out), ..., rₙ₊ₘ(TKNS::in,TKNS::out).
+%   Then the rule
+%     r'(MAYBE_T) --> ?([r₁,…,rₙ],r,t1,MAYBE_T,[rₙ₊₁,…,rₙ₊ₘ])
+%   (always succeeds and) tries
+%     r₁,…,rₙ, r(t1,T), rₙ₊₁,…,rₙ₊ₘ.
+%   If this succeeds then
+%     MAYBE_T = maybe.yes(T);
+%   otherwise
+%     MAYBE_T = maybe.no.
 %
 % - Suppose we have a DCG rule
-%     r(T1::in, T2::in, T::out, TKNS::in, TKNS::out).
-%   Then
-%     r'(MAYBE_T) --> ?(MAYBE_T,r,t1,t2)
-%   tries r(t1,t2,T) and:
-%   - if r(t1,t2,T) succeeds, then MAYBE_T = maybe.yes(T);
-%   - if r(t1,t2,T) fails,    then MAYBE_T = maybe.no.
+%     r(T1::in,T2::in,T::out,TKNS::in,TKNS::out)
+%   and DCG rules
+%     r₁(TKNS::in,TKNS::out), ..., rₙ(TKNS::in,TKNS::out)
+%   and
+%     rₙ₊₁(TKNS::in,TKNS::out), ..., rₙ₊ₘ(TKNS::in,TKNS::out).
+%   Then the rule
+%     r'(MAYBE_T) --> ?([r₁,…,rₙ],r,t1,t2,MAYBE_T,[rₙ₊₁,…,rₙ₊ₘ])
+%   (always succeeds and) tries
+%     r₁,…,rₙ, r(t1,t2,T), rₙ₊₁,…,rₙ₊ₘ.
+%   If this succeeds then
+%     MAYBE_T = maybe.yes(T);
+%   otherwise
+%     MAYBE_T = maybe.no.
 %
 % - Suppose we have a DCG rule
-%     r(T1::in, T2::in, T3::in, T::out, TKNS::in, TKNS::out).
-%   Then
-%     r'(MAYBE_T) --> ?(MAYBE_T,r,t1,t2,t3)
-%   tries r(t1,t2,t3,T) and:
-%   - if r(t1,t2,t3,T) succeeds, then MAYBE_T = maybe.yes(T);
-%   - if r(t1,t2,t3,T) fails,    then MAYBE_T = maybe.no.
+%     r(T1::in,T2::in,T3::in,T::out,TKNS::in,TKNS::out)
+%   and DCG rules
+%     r₁(TKNS::in,TKNS::out), ..., rₙ(TKNS::in,TKNS::out)
+%   and
+%     rₙ₊₁(TKNS::in,TKNS::out), ..., rₙ₊ₘ(TKNS::in,TKNS::out).
+%   Then the rule
+%     r'(MAYBE_T) --> ?([r₁,…,rₙ],r,t1,t2,t3,MAYBE_T,[rₙ₊₁,…,rₙ₊ₘ])
+%   (always succeeds and) tries
+%     r₁,…,rₙ, r(t1,t2,t3,T), rₙ₊₁,…,rₙ₊ₘ.
+%   If this succeeds then
+%     MAYBE_T = maybe.yes(T);
+%   otherwise
+%     MAYBE_T = maybe.no.
 %
 % - For rules with more than 3 inputs one may resort to currying (or one may
-%   extend the predicate list below). Given a DCG rule
-%     r(T1::in, T2::in, T3::in, T4::in, T::out, TKNS::in, TKNS::out),
-%   Then
-%     r'(MAYBE_T) --> {R = r(t1,t2,t3,t4}, ?(MAYBE_T,R)
-%   tries r(t1,t2,t3,t4,T) and:
-%   - if r(t1,t2,t3,t4,T) succeeds, then MAYBE_T = maybe.yes(T);
-%   - if r(t1,t2,t3,t4,T) fails,    then MAYBE_T = maybe.no.
+%   extend the predicate list below). For example, given a DCG rule
+%     r(T1::in,T2::in,T3::in,T4::in,T::out,TKNS::in,TKNS::out)
+%   and DCG rules
+%     r₁(TKNS::in,TKNS::out), ..., rₙ(TKNS::in,TKNS::out)
+%   and
+%     rₙ₊₁(TKNS::in,TKNS::out), ..., rₙ₊ₘ(TKNS::in,TKNS::out),
+%   then the rule
+%     r'(MAYBE_T) --> {R = r(t1,t2,t3,t4)}, ?([r₁,…,rₙ],R,MAYBE_T,[rₙ₊₁,…,rₙ₊ₘ])
+%   (always succeeds and) tries
+%     r₁,…,rₙ, r(t1,t2,t3,t4,T), rₙ₊₁,…,rₙ₊ₘ.
+%   If this succeeds then
+%     MAYBE_T = maybe.yes(T);
+%   otherwise
+%     MAYBE_T = maybe.no.
+
+:- type ta_rule(TKNS) ==  pred(TKNS, TKNS).
+:- inst ta_rule       == (pred(in,   out) is semidet).
+
+:- pred ?(list(ta_rule(TKNS)), TKNS, TKNS).
+:- mode ?(in(list(ta_rule)),   in,   out) is det.
 
 :- pred ?(
-  ta_maybe(T), pred(T1,T2,T3, T,   TKNS, TKNS),           T1,T2,T3, TKNS, TKNS
+  list(ta_rule(TKNS)),
+  pred(T,TKNS,TKNS),
+  ta_maybe(T),
+  list(ta_rule(TKNS)),
+  TKNS,
+  TKNS
 ).
 :- mode ?(
-  out,         pred(in,in,in, out, in,   out) is semidet, in,in,in, in,   out
+  in(list(ta_rule)),
+  pred(out,in,out) is semidet,
+  out,
+  in(list(ta_rule)),
+  in,
+  out
 ) is det.
 
 :- pred ?(
-  ta_maybe(T), pred(T1,T2,    T,   TKNS, TKNS),           T1,T2,    TKNS, TKNS
+  list(ta_rule(TKNS)),
+  pred(T1,T,TKNS,TKNS),
+  T1,
+  ta_maybe(T),
+  list(ta_rule(TKNS)),
+  TKNS,
+  TKNS
 ).
 :- mode ?(
-  out,         pred(in,in,    out, in,   out) is semidet, in,in,    in,   out
+  in(list(ta_rule)),
+  pred(in,out,in,out) is semidet,
+  in,   % T1
+  out,  % maybe T
+  in(list(ta_rule)),
+  in,
+  out
 ) is det.
 
 :- pred ?(
-  ta_maybe(T), pred(T1,       T,   TKNS, TKNS),           T1,       TKNS, TKNS
+  list(ta_rule(TKNS)),
+  pred(T1,T2,T,TKNS,TKNS),
+  T1,
+  T2,
+  ta_maybe(T),
+  list(ta_rule(TKNS)),
+  TKNS,
+  TKNS
 ).
 :- mode ?(
-  out,         pred(in,       out, in,   out) is semidet, in,       in,   out
+  in(list(ta_rule)),
+  pred(in,in,out,in,out) is semidet,
+  in,  % T1
+  in,  % T2
+  out, % maybe T
+  in(list(ta_rule)),
+  in,
+  out
 ) is det.
 
 :- pred ?(
-  ta_maybe(T), pred(          T,   TKNS, TKNS),                     TKNS, TKNS
+  list(ta_rule(TKNS)),
+  pred(T1,T2,T3,T,TKNS,TKNS),
+  T1,
+  T2,
+  T3,
+  ta_maybe(T),
+  list(ta_rule(TKNS)),
+  TKNS,
+  TKNS
 ).
 :- mode ?(
-  out,         pred(          out, in,   out) is semidet,           in,   out
-) is det.
-
-:- pred ?(
-               pred(               TKNS, TKNS),                     TKNS, TKNS
-).
-:- mode ?(
-               pred(               in,   out) is semidet,           in,   out
+  in(list(ta_rule)),
+  pred(in,in,in,out,in,out) is semidet,
+  in,  % T1
+  in,  % T2
+  in,  % T3
+  out, % maybe T
+  in(list(ta_rule)),
+  in,
+  out
 ) is det.
 
 
@@ -113,7 +201,7 @@
 
 %% MODULE IMPORTS
 
-:- import_module list, string.
+:- import_module string.
 
 :- use_module char.
 
@@ -127,37 +215,41 @@
 
 %% GENERALIZED DCG ? OPERATOR
 
-?(P) --> (
-  P -> {true};
-       {true}
-).
+:- pred apply_rules(list(ta_rule(TKNS)), TKNS, TKNS).
+:- mode apply_rules(in(list(ta_rule)),   in,   out) is semidet.
+apply_rules([])     --> {true}.
+apply_rules([R|RS]) --> R, apply_rules(RS).
 
-?(X,P) --> (
-  P(X_) -> {X = maybe.yes(X_)};
-           {X = maybe.no}
+?(RS) --> (
+  apply_rules(RS) -> {true};
+                     {true}
 ).
-
-?(X,P,Y) --> (
-  P(Y,X_) -> {X = maybe.yes(X_)};
-             {X = maybe.no}
+?(RS_1,R,X1,X2,X3,X,RS_2) --> (
+  apply_rules(RS_1), R(X1,X2,X3,X_), apply_rules(RS_2) -> {X = maybe.yes(X_)};
+                                                          {X = maybe.no}
 ).
-
-?(X,P,Y,Z) --> (
-  P(Y,Z,X_) -> {X = maybe.yes(X_)};
-               {X = maybe.no}
+?(RS_1,R,X1,X2,   X,RS_2) --> (
+  apply_rules(RS_1), R(X1,X2,   X_), apply_rules(RS_2) -> {X = maybe.yes(X_)};
+                                                          {X = maybe.no}
 ).
-
-?(X,P,U,V,W) --> (
-  P(U,V,W,X_) -> {X = maybe.yes(X_)};
-                 {X = maybe.no}
+?(RS_1,R,X1,      X,RS_2) --> (
+  apply_rules(RS_1), R(X1,      X_), apply_rules(RS_2) -> {X = maybe.yes(X_)};
+                                                          {X = maybe.no}
+).
+?(RS_1,R,         X,RS_2) --> (
+  apply_rules(RS_1), R(         X_), apply_rules(RS_2) -> {X = maybe.yes(X_)};
+                                                          {X = maybe.no}
 ).
 
 %% TEST PREDICATES
 
-%%% DCG RULE R_A
+%%% DCG RULES R_A AND R_B
 
-:- pred r_a(ta_chrs::in, ta_chrs::out) is semidet.
+:- pred r_a(ta_chrs::in,ta_chrs::out) is semidet.
 r_a --> ['a'].
+
+:- pred r_b(ta_chrs::in,ta_chrs::out) is semidet.
+r_b --> ['b'].
 
 %%% DCG RULES R_CHR_EXCEPT_FOR
 
@@ -199,220 +291,382 @@ r_chr_except_for(        C1,                          C_OUT) --> (
   {not C_OUT = C1}
 ).
 
-%%% THE TEST PREDICATES
+%%% HELPER FUNCTION STR2CHRS
 
 :- func str2chrs(ta_str) = ta_chrs.
 str2chrs(S)              = string.to_char_list(S).
 
-:- pred p_test_1 is semidet.
-p_test_1 :-
-  ?(r_a, str2chrs("abc"), str2chrs("bc")).
+%%% TESTS FOR ?/3
 
-:- pred p_test_2 is semidet.
-p_test_2 :-
-  ?(r_a, str2chrs("bc"), str2chrs("bc")).
+:- pred p_test_3a is semidet.
+p_test_3a :-
+  ?([r_a], str2chrs("abc"), str2chrs("bc")).
 
-:- pred r_test_3(ta_chrs::in, ta_chrs::out) is det.
-r_test_3 --> ?(r_a).
-:- pred p_test_3 is semidet.
-p_test_3 :- r_test_3(str2chrs("abc"),str2chrs("bc")).
+:- pred p_test_3b is semidet.
+p_test_3b :-
+  ?([r_a,r_b], str2chrs("abc"), str2chrs("c")).
 
-:- pred r_test_4(ta_chrs::in, ta_chrs::out) is det.
-r_test_4 --> ?(r_a).
-:- pred p_test_4 is semidet.
-p_test_4 :- r_test_4(str2chrs("bc"),str2chrs("bc")).
+:- pred p_test_3c is semidet.
+p_test_3c :-
+  ?([r_a,r_b], str2chrs("acb"), str2chrs("acb")).
 
-:- pred p_test_5 is semidet.
-p_test_5 :-
-  ?(maybe.yes('a'), r_chr_except_for, 'c', str2chrs("abc"), str2chrs("bc")).
+%%% TESTS FOR ?/6 WITH CURRYING
 
-:- pred p_test_6 is semidet.
-p_test_6 :-
-  ?(maybe.no, r_chr_except_for, 'a', str2chrs("abc"), str2chrs("abc")).
+:- pred p_test_currying_1 is semidet.
+p_test_currying_1 :- (
+  R = r_chr_except_for('c','d','e','f'),
+  ?([],R,maybe.yes('a'),[],str2chrs("abcabc"),str2chrs("bcabc"))
+).
 
-:- pred r_test_7(ta_maybe(ta_chr)::out, ta_chrs::in, ta_chrs::out) is det.
-r_test_7(C) --> ?(C,r_chr_except_for,'b').
-:- pred p_test_7 is semidet.
-p_test_7 :- r_test_7(maybe.yes('a'),str2chrs("abc"),str2chrs("bc")).
+:- pred p_test_currying_2 is semidet.
+p_test_currying_2 :- (
+  R = r_chr_except_for('a','d','e','f'),
+  ?([r_a,r_b],R,maybe.yes('c'),[r_a,r_b],str2chrs("abcabc"),str2chrs("c"))
+).
 
-:- pred r_test_8(ta_maybe(ta_chr)::out, ta_chrs::in, ta_chrs::out) is det.
-r_test_8(C) --> ?(C,r_chr_except_for,'a').
-:- pred p_test_8 is semidet.
-p_test_8 :- r_test_8(maybe.no,str2chrs("abc"),str2chrs("abc")).
+:- pred p_test_currying_3 is semidet.
+p_test_currying_3 :- (
+  R = r_chr_except_for('b','d','e','f'),
+  ?([],R,maybe.yes('a'),[r_a,r_b],str2chrs("aab"),[])
+).
 
-:- pred p_test_9 is semidet.
-p_test_9 :-
-  ?(maybe.yes('a'), r_chr_except_for, 'b', 'c', str2chrs("ab"), str2chrs("b")).
+:- pred p_test_currying_4 is semidet.
+p_test_currying_4 :- (
+  R = r_chr_except_for('b','d','e','f'),
+  ?([r_a],R,maybe.no,[],str2chrs("bc"),str2chrs("bc"))
+).
 
-:- pred p_test_10 is semidet.
-p_test_10 :-
-  ?(maybe.no, r_chr_except_for, 'b', 'a', str2chrs("abc"), str2chrs("abc")).
+:- pred p_test_currying_5 is semidet.
+p_test_currying_5 :- (
+  R = r_chr_except_for('b','d','e','f'),
+  ?([r_a],R,maybe.no,[],str2chrs("ab"),str2chrs("ab"))
+).
 
-:- pred r_test_11(ta_maybe(ta_chr)::out, ta_chrs::in, ta_chrs::out) is det.
-r_test_11(C) --> ?(C,r_chr_except_for,'b','c').
-:- pred p_test_11 is semidet.
-p_test_11 :- r_test_11(maybe.yes('a'),str2chrs("abc"),str2chrs("bc")).
+:- pred p_test_currying_6 is semidet.
+p_test_currying_6 :- (
+  R = r_chr_except_for('b','d','e','f'),
+  ?([r_a],R,maybe.no,[r_a,r_a],str2chrs("aaab"),str2chrs("aaab"))
+).
 
-:- pred r_test_12(ta_maybe(ta_chr)::out, ta_chrs::in, ta_chrs::out) is det.
-r_test_12(C) --> ?(C,r_chr_except_for,'b','a').
-:- pred p_test_12 is semidet.
-p_test_12 :- r_test_12(maybe.no,str2chrs("abc"),str2chrs("abc")).
+%%% TESTS FOR ?/7
 
-:- pred p_test_13 is semidet.
-p_test_13 :-
-  ?(maybe.yes('a'),r_chr_except_for, 'b','c','d', str2chrs("a"), []).
+:- pred p_test_7a is semidet.
+p_test_7a :-
+  ?([],r_chr_except_for,'c',maybe.yes('a'),[],str2chrs("abc"),str2chrs("bc")).
 
-:- pred p_test_14 is semidet.
-p_test_14 :-
-  ?(maybe.no, r_chr_except_for, 'b', 'a', 'd', str2chrs("ab"), str2chrs("ab")).
+:- pred p_test_7b is semidet.
+p_test_7b :-
+  ?([],r_chr_except_for,'a',maybe.no,[],str2chrs("abc"),str2chrs("abc")).
 
-:- pred r_test_15(ta_maybe(ta_chr)::out, ta_chrs::in, ta_chrs::out) is det.
-r_test_15(C) --> ?(C,r_chr_except_for,'b','c','d').
-:- pred p_test_15 is semidet.
-p_test_15 :- r_test_15(maybe.yes('a'),str2chrs("abc"),str2chrs("bc")).
+:- pred p_test_7c is semidet.
+p_test_7c :- ?(
+  [r_a,r_b],
+  r_chr_except_for,'d',
+  maybe.yes('c'),
+  [r_a,r_b],
+  str2chrs("abcabc"),
+  str2chrs("c")
+).
 
-:- pred r_test_16(ta_maybe(ta_chr)::out, ta_chrs::in, ta_chrs::out) is det.
-r_test_16(C) --> ?(C,r_chr_except_for,'b','a','d').
-:- pred p_test_16 is semidet.
-p_test_16 :- r_test_16(maybe.no,str2chrs("abc"),str2chrs("abc")).
+:- pred p_test_7d is semidet.
+p_test_7d :- ?(
+  [r_b],
+  r_chr_except_for,'d',
+  maybe.no,
+  [r_a,r_b],
+  str2chrs("abcabc"),
+  str2chrs("abcabc")
+).
 
-:- pred r_test_17(ta_maybe(ta_chr)::out, ta_chrs::in, ta_chrs::out) is det.
-r_test_17(C) --> {R = r_chr_except_for('b','c','d','e')}, ?(C,R).
-:- pred p_test_17 is semidet.
-p_test_17 :- r_test_17(maybe.yes('a'),str2chrs("abc"),str2chrs("bc")).
+:- pred p_test_7e is semidet.
+p_test_7e :- ?(
+  [r_a,r_b],
+  r_chr_except_for,'d',
+  maybe.no,
+  [r_a,r_b,r_b],
+  str2chrs("abcabc"),
+  str2chrs("abcabc")
+).
 
-:- pred r_test_18(ta_maybe(ta_chr)::out, ta_chrs::in, ta_chrs::out) is det.
-r_test_18(C) --> {R = r_chr_except_for('b','c','d','a')}, ?(C,R).
-:- pred p_test_18 is semidet.
-p_test_18 :- r_test_18(maybe.no,str2chrs("abc"),str2chrs("abc")).
+%%% TESTS FOR ?/8
+
+:- pred p_test_8a is semidet.
+p_test_8a :- ?(
+  [],
+  r_chr_except_for,'c','d',
+  maybe.yes('a'),
+  [],
+  str2chrs("abc"),
+  str2chrs("bc")
+).
+
+:- pred p_test_8b is semidet.
+p_test_8b :-
+  ?([],r_chr_except_for,'b','a',maybe.no,[],str2chrs("abc"),str2chrs("abc")).
+
+:- pred p_test_8c is semidet.
+p_test_8c :- ?(
+  [r_a,r_b],
+  r_chr_except_for,'d','f',
+  maybe.yes('c'),
+  [r_a,r_b],
+  str2chrs("abcabc"),
+  str2chrs("c")
+).
+
+:- pred p_test_8d is semidet.
+p_test_8d :- ?(
+  [r_b],
+  r_chr_except_for,'d','f',
+  maybe.no,
+  [r_a,r_b],
+  str2chrs("abcabc"),
+  str2chrs("abcabc")
+).
+
+:- pred p_test_8e is semidet.
+p_test_8e :- ?(
+  [r_a,r_b],
+  r_chr_except_for,'d','f',
+  maybe.no,
+  [r_a,r_b,r_b],
+  str2chrs("abcabc"),
+  str2chrs("abcabc")
+).
+
+%%% TESTS FOR ?/9
+
+:- pred p_test_9a is semidet.
+p_test_9a :- ?(
+  [],
+  r_chr_except_for,'c','d','e',
+  maybe.yes('a'),
+  [],
+  str2chrs("abc"),
+  str2chrs("bc")
+).
+
+:- pred p_test_9b is semidet.
+p_test_9b :- ?(
+  [],
+  r_chr_except_for,'b','a','e',
+  maybe.no,
+  [],
+  str2chrs("abc"),
+  str2chrs("abc")
+).
+
+:- pred p_test_9c is semidet.
+p_test_9c :- ?(
+  [r_a,r_b],
+  r_chr_except_for,'d','f','e',
+  maybe.yes('c'),
+  [r_a,r_b],
+  str2chrs("abcabc"),
+  str2chrs("c")
+).
+
+:- pred p_test_9d is semidet.
+p_test_9d :- ?(
+  [r_b],
+  r_chr_except_for,'d','f','e',
+  maybe.no,
+  [r_a,r_b],
+  str2chrs("abcabc"),
+  str2chrs("abcabc")
+).
+
+:- pred p_test_9e is semidet.
+p_test_9e :- ?(
+  [r_a,r_b],
+  r_chr_except_for,'d','f','e',
+  maybe.no,
+  [r_a,r_b,r_b],
+  str2chrs("abcabc"),
+  str2chrs("abcabc")
+).
 
 
 %% MAIN
 
 main(!IO) :- (
   (
-    not p_test_1 -> (
+    not p_test_3a -> (
       io.set_exit_status(1,!IO),
-      io.write_string(io.stderr_stream,"p_test_1 failed\n",!IO)
+      io.write_string(io.stderr_stream,"p_test_3a for ? operator failed\n",!IO)
     );
     true
   ),
   (
-    not p_test_2 -> (
+    not p_test_3b -> (
       io.set_exit_status(1,!IO),
-      io.write_string(io.stderr_stream,"p_test_2 failed\n",!IO)
+      io.write_string(io.stderr_stream,"p_test_3b for ? operator failed\n",!IO)
     );
     true
   ),
   (
-    not p_test_3 -> (
+    not p_test_3c -> (
       io.set_exit_status(1,!IO),
-      io.write_string(io.stderr_stream,"p_test_3 failed\n",!IO)
+      io.write_string(io.stderr_stream,"p_test_3c for ? operator failed\n",!IO)
     );
     true
   ),
   (
-    not p_test_4 -> (
+    not p_test_7a -> (
       io.set_exit_status(1,!IO),
-      io.write_string(io.stderr_stream,"p_test_4 failed\n",!IO)
+      io.write_string(io.stderr_stream,"p_test_7a for ? operator failed\n",!IO)
     );
     true
   ),
   (
-    not p_test_5 -> (
+    not p_test_7b -> (
       io.set_exit_status(1,!IO),
-      io.write_string(io.stderr_stream,"p_test_5 failed\n",!IO)
+      io.write_string(io.stderr_stream,"p_test_7b for ? operator failed\n",!IO)
     );
     true
   ),
   (
-    not p_test_6 -> (
+    not p_test_7c -> (
       io.set_exit_status(1,!IO),
-      io.write_string(io.stderr_stream,"p_test_6 failed\n",!IO)
+      io.write_string(io.stderr_stream,"p_test_7c for ? operator failed\n",!IO)
     );
     true
   ),
   (
-    not p_test_7 -> (
+    not p_test_7d -> (
       io.set_exit_status(1,!IO),
-      io.write_string(io.stderr_stream,"p_test_7 failed\n",!IO)
+      io.write_string(io.stderr_stream,"p_test_7d for ? operator failed\n",!IO)
     );
     true
   ),
   (
-    not p_test_8 -> (
+    not p_test_7e -> (
       io.set_exit_status(1,!IO),
-      io.write_string(io.stderr_stream,"p_test_8 failed\n",!IO)
+      io.write_string(io.stderr_stream,"p_test_7e for ? operator failed\n",!IO)
     );
     true
   ),
   (
-    not p_test_9 -> (
+    not p_test_8a -> (
       io.set_exit_status(1,!IO),
-      io.write_string(io.stderr_stream,"p_test_9 failed\n",!IO)
+      io.write_string(io.stderr_stream,"p_test_8a for ? operator failed\n",!IO)
     );
     true
   ),
   (
-    not p_test_10 -> (
+    not p_test_8b -> (
       io.set_exit_status(1,!IO),
-      io.write_string(io.stderr_stream,"p_test_10 failed\n",!IO)
+      io.write_string(io.stderr_stream,"p_test_8b for ? operator failed\n",!IO)
     );
     true
   ),
   (
-    not p_test_11 -> (
+    not p_test_8c -> (
       io.set_exit_status(1,!IO),
-      io.write_string(io.stderr_stream,"p_test_11 failed\n",!IO)
+      io.write_string(io.stderr_stream,"p_test_8c for ? operator failed\n",!IO)
     );
     true
   ),
   (
-    not p_test_12 -> (
+    not p_test_8d -> (
       io.set_exit_status(1,!IO),
-      io.write_string(io.stderr_stream,"p_test_12 failed\n",!IO)
+      io.write_string(io.stderr_stream,"p_test_8d for ? operator failed\n",!IO)
     );
     true
   ),
   (
-    not p_test_13 -> (
+    not p_test_8e -> (
       io.set_exit_status(1,!IO),
-      io.write_string(io.stderr_stream,"p_test_13 failed\n",!IO)
+      io.write_string(io.stderr_stream,"p_test_8e for ? operator failed\n",!IO)
     );
     true
   ),
   (
-    not p_test_14 -> (
+    not p_test_9a -> (
       io.set_exit_status(1,!IO),
-      io.write_string(io.stderr_stream,"p_test_14 failed\n",!IO)
+      io.write_string(io.stderr_stream,"p_test_9a for ? operator failed\n",!IO)
     );
     true
   ),
   (
-    not p_test_15 -> (
+    not p_test_9b -> (
       io.set_exit_status(1,!IO),
-      io.write_string(io.stderr_stream,"p_test_15 failed\n",!IO)
+      io.write_string(io.stderr_stream,"p_test_9b for ? operator failed\n",!IO)
     );
     true
   ),
   (
-    not p_test_16 -> (
+    not p_test_9c -> (
       io.set_exit_status(1,!IO),
-      io.write_string(io.stderr_stream,"p_test_16 failed\n",!IO)
+      io.write_string(io.stderr_stream,"p_test_9c for ? operator failed\n",!IO)
     );
     true
   ),
   (
-    not p_test_17 -> (
+    not p_test_9d -> (
       io.set_exit_status(1,!IO),
-      io.write_string(io.stderr_stream,"p_test_17 failed\n",!IO)
+      io.write_string(io.stderr_stream,"p_test_9d for ? operator failed\n",!IO)
     );
     true
   ),
   (
-    not p_test_18 -> (
+    not p_test_9e -> (
       io.set_exit_status(1,!IO),
-      io.write_string(io.stderr_stream,"p_test_18 failed\n",!IO)
+      io.write_string(io.stderr_stream,"p_test_9e for ? operator failed\n",!IO)
+    );
+    true
+  ),
+  (
+    not p_test_currying_1 -> (
+      io.set_exit_status(1,!IO),
+      io.write_string(
+        io.stderr_stream,"p_test_currying_1 for ? operator failed\n",!IO
+      )
+    );
+    true
+  ),
+  (
+    not p_test_currying_2 -> (
+      io.set_exit_status(1,!IO),
+      io.write_string(
+        io.stderr_stream,"p_test_currying_2 for ? operator failed\n",!IO
+      )
+    );
+    true
+  ),
+  (
+    not p_test_currying_3 -> (
+      io.set_exit_status(1,!IO),
+      io.write_string(
+        io.stderr_stream,"p_test_currying_3 for ? operator failed\n",!IO
+      )
+    );
+    true
+  ),
+  (
+    not p_test_currying_4 -> (
+      io.set_exit_status(1,!IO),
+      io.write_string(
+        io.stderr_stream,"p_test_currying_4 for ? operator failed\n",!IO
+      )
+    );
+    true
+  ),
+  (
+    not p_test_currying_5 -> (
+      io.set_exit_status(1,!IO),
+      io.write_string(
+        io.stderr_stream,"p_test_currying_5 for ? operator failed\n",!IO
+      )
+    );
+    true
+  ),
+  (
+    not p_test_currying_6 -> (
+      io.set_exit_status(1,!IO),
+      io.write_string(
+        io.stderr_stream,"p_test_currying_6 for ? operator failed\n",!IO
+      )
     );
     true
   )
