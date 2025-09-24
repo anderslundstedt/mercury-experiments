@@ -188,9 +188,9 @@
 ) is det.
 
 
-%% MAIN
+%% TEST
 
-:- pred main(io.io::di, io.io::uo) is det.
+:- pred test(io.io::di, io.io::uo) is det.
 
 
 
@@ -487,9 +487,9 @@ p_test_9e :- ?(
 ).
 
 
-%% MAIN
+%% TEST
 
-main(!IO) :- (
+test(!IO) :- (
   (
     not p_test_3a -> (
       io.set_exit_status(1,!IO),
