@@ -306,7 +306,7 @@ p_test_3a :-
 
 :- pred p_test_3b is semidet.
 p_test_3b :-
-  +([r_a,r_b], str2chrs("ababc"), str2chrs("c")).
+  +([r_a,r_b], str2chrs("abababc"), str2chrs("c")).
 
 :- pred p_test_3c is semidet.
 p_test_3c :-
@@ -332,7 +332,7 @@ p_test_7d :-
 
 :- pred p_test_7e is semidet.
 p_test_7e :-
-  +([r_a],r_chr_except_for,'b',['a'],[r_b],str2chrs("aabc"),['c']).
+  +([r_a],r_chr_except_for,'b',['a','a'],[r_b],str2chrs("aabaabc"),['c']).
 
 :- pred p_test_7f is semidet.
 p_test_7f :-
@@ -366,7 +366,7 @@ p_test_8d :-
 
 :- pred p_test_8e is semidet.
 p_test_8e :-
-  +([r_a],r_chr_except_for,'b','c',['a'],[r_b],str2chrs("aabc"),['c']).
+  +([r_a],r_chr_except_for,'b','c',['a','a'],[r_b],str2chrs("aabaabc"),['c']).
 
 :- pred p_test_8f is semidet.
 p_test_8f :-
