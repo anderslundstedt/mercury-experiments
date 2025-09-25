@@ -110,7 +110,7 @@
 :- inst ta_rule       == (pred(in,   out) is semidet).
 
 :- pred *(list(ta_rule(TKNS)), TKNS, TKNS).
-:- mode *(in(list(ta_rule)),   in,   out) is det.
+:- mode *(in(list(ta_rule)),   in,   out) is semidet.
 
 :- pred *(
   list(ta_rule(TKNS)),
@@ -127,7 +127,7 @@
   in(list(ta_rule)),
   in,
   out
-) is det.
+) is semidet.
 
 :- pred *(
   list(ta_rule(TKNS)),
@@ -146,7 +146,7 @@
   in(list(ta_rule)),
   in,
   out
-) is det.
+) is semidet.
 
 :- pred *(
   list(ta_rule(TKNS)),
@@ -167,7 +167,7 @@
   in(list(ta_rule)),
   in,
   out
-) is det.
+) is semidet.
 
 :- pred *(
   list(ta_rule(TKNS)),
@@ -190,7 +190,7 @@
   in(list(ta_rule)),
   in,
   out
-) is det.
+) is semidet.
 
 
 %% MAIN
@@ -209,6 +209,15 @@
 :- import_module string.
 
 :- use_module char.
+
+
+%% PRAGMAS TO DISABLE DETERMINISM WARNINGS
+
+:- pragma no_determinism_warning('*'/3).
+:- pragma no_determinism_warning('*'/6).
+:- pragma no_determinism_warning('*'/7).
+:- pragma no_determinism_warning('*'/8).
+:- pragma no_determinism_warning('*'/9).
 
 
 %% TYPE ABBREVIATIONS
