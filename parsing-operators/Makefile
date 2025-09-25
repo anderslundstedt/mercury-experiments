@@ -25,3 +25,4 @@ generalized_question_mark:
 
 test:
 	mmc --make --warn-dead-preds --warn-dead-procs --inform-ite-instead-of-switch test
+	./test
